@@ -4,7 +4,7 @@ def read_file(path):
     with open(path) as file:
         dict = {
             "m" : 0,
-            "TC" : [], #Duration of each Parcela
+            "T" : [], #Duration of each Parcela
             "P" : 0,
             "U" : []} #Utilities matrix
         lineCounter = 0
@@ -12,7 +12,7 @@ def read_file(path):
             if(lineCounter == 0):
                 dict["m"] = int(line)
             elif(lineCounter == 1):
-                dict["TC"] = str_to_list(line)
+                dict["T"] = str_to_list(line)
             elif(lineCounter == 2):
                 dict["P"] = int(line)
             else:
@@ -29,7 +29,4 @@ def str_to_list(string):
 
     return list
 
-if __name__ == "__main__":
-    path_to_file = os.path.dirname(os.path.realpath(__file__)) + "\\test.txt"
-    print(path_to_file)
-    read_file(path_to_file)
+
