@@ -25,17 +25,36 @@ def model(U, TC, m, cantidadParcelas):
 
     #Define the variables for the problem
     X=[[]] * cantidadParcelas
-    C=[[]] * cantidadParcelas
+    C=[[] * m] * cantidadParcelas
 
     for i in range(0, len(X)):
         X[i] = solver.IntVar(0.0, solver.infinity(), 'X_'+str(i+1))
-        C[i] = solver.BoolVar('C_'+str(i+1))
+        
+        for j in range(0, m):
+            C[i, j] = solver.BoolVar('C_'+str(i+1)+"_"+str(j+1))
 
     #Constraints
     for i in range(0, cantidadParcelas):
         #solver.Add( X[i] <= m )
         solver.Add( X[i] + TC[i] - 1 <= m)
+    
+    for i in range(0, cantidadParcelas):
+        for j in range(0, m):
+            solver.Add( C[i, j] * j == X[i] )
+    
+    for j in range(0, m):
+        for i in range(0, cantidadParcelas):
+            solver.Add( C[i, j] <= 1 )
 
+    obj_expr = solver.Objective()
+    obj_expr.SetMaximization()
+        
+    
+    for i in range(0,cantidadParcelas):
+        coefficient = 0
+        for j in range(0, m):
+            coefficient+=U[i, j]
+        objective.SetCoefficient(C[i],coefficient)
     #https://developers.google.com/optimization/mip/integer_opt_cp
     '''
     solver = pywraplp.Solver('EjemploLineal',pywraplp.Solver.GLOP_LINEAR_PROGRAMMING)
