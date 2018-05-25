@@ -1,9 +1,9 @@
 from ortools.linear_solver import pywraplp
-from ortools.constraint_solver import pywarpcp
+from ortools.constraint_solver import pywrapcp
 from ortools.constraint_solver import solver_parameters_pb2
 import read_files 
 import os
-
+INFINITY = 9999999999
 PATH_TO_FILE = os.path.dirname(os.path.realpath(__file__)) + "\\test.txt"
 #Input vars
 
@@ -22,39 +22,65 @@ def get_data():
 def model(U, TC, m, cantidadParcelas):
     parameters = pywrapcp.Solver.DefaultSolverParameters()
     solver = pywrapcp.Solver("Test", parameters)
-
+    print(m, " ", cantidadParcelas)
     #Define the variables for the problem
     X=[[]] * cantidadParcelas
-    C=[[] * m] * cantidadParcelas
+    C=[[0] * m] * cantidadParcelas
 
     for i in range(0, len(X)):
-        X[i] = solver.IntVar(0.0, solver.infinity(), 'X_'+str(i+1))
+        X[i] = solver.IntVar(0, INFINITY, 'X_'+str(i+1))
         
         for j in range(0, m):
-            C[i, j] = solver.BoolVar('C_'+str(i+1)+"_"+str(j+1))
+            C[i][j] = solver.BoolVar("C_" + str(i+1) + "_" + str(j+1))
 
     #Constraints
-    for i in range(0, cantidadParcelas):
-        #solver.Add( X[i] <= m )
+    for i in range(0, len(X)):
         solver.Add( X[i] + TC[i] - 1 <= m)
     
     for i in range(0, cantidadParcelas):
         for j in range(0, m):
-            solver.Add( C[i, j] * j == X[i] )
+            solver.Add( C[i][j] * j == X[i] )
     
     for j in range(0, m):
         for i in range(0, cantidadParcelas):
-            solver.Add( C[i, j] <= 1 )
+            solver.Add( C[i][j] <= 1 )
 
+    other_parcelas = [] * cantidadParcelas
+    for i in range(0, cantidadParcelas):
+        solver.Add( C[i][j] >= INFINITY * sum( C[i][j] for j in range(0, m) if i is not j ))
+
+    #Objective function
     obj_expr = solver.Objective()
-    obj_expr.SetMaximization()
-        
-    
+      
     for i in range(0,cantidadParcelas):
         coefficient = 0
         for j in range(0, m):
-            coefficient+=U[i, j]
+            coefficient+=U[i][j]
         objective.SetCoefficient(C[i],coefficient)
+
+    obj_expr.SetMaximization()
+
+    vars = []
+    for i in range(0, cantidadParcelas):
+        for j in range(0, m):
+            vars.append(C[i][j])
+        vars.append(X[i])
+    decision_builder = solver.Phase(vars, solver.CHOOSE_FIRST_UNBOUND, solver.ASSIGN_MIN_VALUE)
+
+    collector = solver.LastSolutionCollector()
+    for v in vars:
+        collector.Add(v)
+
+    collector.AddObjective(obj_expr)
+    solver.Solve(decision_builder, [obj_expr, collector])
+
+    if collector.SolutionCount() > 0:
+        best_solution = collector.SolutionCount() - 1
+        print("Objective value:", collector.ObjectiveValue(best_solution))
+        print()
+        for x in X:
+            print('x= ', collector.Value(best_solution, x))
+
     #https://developers.google.com/optimization/mip/integer_opt_cp
     '''
     solver = pywraplp.Solver('EjemploLineal',pywraplp.Solver.GLOP_LINEAR_PROGRAMMING)
