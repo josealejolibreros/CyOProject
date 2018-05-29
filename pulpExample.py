@@ -25,20 +25,9 @@ for i in range(1,m+1):
 
 X =LpVariable.dicts('X', keysParcelas, 1, m, cat='Integer')
 C =LpVariable.dicts('C', (keysParcelas,keysMeses), 0, 1, cat='Integer')
-#W =LpVariable.dicts('W', (keysParcelas,["0","1"]), 0, 1, cat='Integer')
-
-#print(X)
 
 # Objective function
 objaux=0
-
-#for j in range(1,cantidadParcelas+1):
-#	objaux += lpDot(list(map(int,C[str(j)])) , U[j-1])
-    #objaux += lpDot(C[str(j)] , U[str(j)])
-	
-#my_lp_problem+= objaux,"Z"
-
-#my_lp_problem += lpSum([lpDot(C[str(j)] , U[j-1]) for j in range(1,cantidadParcelas+1)]), "Z"
 
 aux=U[0][0] * C["1"]["1"] 
 
@@ -51,37 +40,7 @@ for i in range(2,cantidadParcelas+1):
 
 my_lp_problem += aux,"Z"
 
-#my_lp_problem += lpSum([pattVars[i]*Pattern.cost for i in Patterns])
-# Constraints
-
-#Duracion
-
-#for i in range(1,cantidadParcelas+1):
-	#my_lp_problem += (-M*(X[str(i)]+T[i-1]-1)) <= (lpSum(T)-T[i-1]) *  W[str(i)]["0"]
-	#my_lp_problem += (M*(X[str(i)]+T[i-1]-1)) >= (lpSum(T)-T[i-1]) * W[str(i)]["1"]
-	
-	#sum_times=0
-	#for n in range(m):
-		#if n==i:
-		#	n+=1
-			
-		#else:
-		#	sum_times=sum_times+T[n]
-		#	number = (sum_times-X[i]+1)*W[i][0]
-					
-	#comentado ls	
-	#my_lp_problem += X[i] <= number
-	
-	
-	#restriction1_1=solver.Constraint(-solver.infinity(),number)
-	#restriction1_1.SetCoefficient(X[i],1)
-	
-	#comentado ls
-	#my_lp_problem += number >= X[i]
-	
-	#restriction1_2=solver.Constraint(number,solver.infinity())
-	#restriction1_2.SetCoefficient(X[i],1)
-
+#
 
 #Restriccion la suma de las filas debe ser uno (una cosecha por parcela)
 i = 1
@@ -100,21 +59,11 @@ while j <= m:
     my_lp_problem += lpSum(aux) <= 1
     j += 1
 
-#restriccion, respeto por los tiempos de cosecha
-for j in range(1,m+1):
-    for i in range(1,cantidadParcelas+1):
-		aux = C[str(i)][str(1)]
-		my_lp_problem += lpSum(aux) == 1
-		aux = 0
-		time = T[i-1]
-	    for t in range(2,time):
-    		for p in range(1,cantidadParcelas+1):
-				aux += C[str(p)][str(t)]
-				my_lp_problem += lpSum(aux) == 0
-				print("1")
-
-
-			
+#
+i = 1
+while i <= cantidadParcelas:
+	my_lp_problem += lpSum(C[str(i)]) == 1
+	i += 1
 
 #restriccion las suma de todos los unos (1) debe ser igual al numero de parcelas
 
@@ -137,9 +86,6 @@ for j in range(1,m+1):
 	    aux += C[str(i)][str(j)]
     my_lp_problem += lpSum(aux) <= 1
 """
-
-
-
 '''
 #columnas suma igual a uno
 
@@ -177,10 +123,6 @@ for i in range(1,cantidadParcelas+1):
 
 '''
 
-# Constraints
-#my_lp_problem += 2 * y <= 25 - x
-#my_lp_problem += 4 * y >= 2 * x - 8
-#my_lp_problem += y <= 2 * x - 5
 
 print(my_lp_problem)
 
